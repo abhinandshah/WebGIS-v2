@@ -1,0 +1,639 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2c3e50;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #34495e;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4a6278;
+}
+
+/* Popup Styling */
+.leaflet-popup-content {
+    margin: 15px;
+    min-width: 250px;
+}
+
+.popup-content h6 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.popup-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.popup-content td {
+    padding: 6px 8px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.popup-content td:first-child {
+    font-weight: 600;
+    color: #555;
+    width: 45%;
+}
+
+.popup-content td:last-child {
+    color: #2c3e50;
+}
+
+/* Tooltip Styling */
+.leaflet-tooltip {
+    background-color: rgba(44, 62, 80, 0.9);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.parcel-label {
+    background-color: rgba(52, 152, 219, 0.9) !important;
+    font-weight: 600;
+}
+
+/* Map Controls */
+.leaflet-control-layers {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-control-scale {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+}
+
+/* Button Styles */
+.btn {
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2980b9, #21618c);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #27ae60, #229954);
+    border: none;
+}
+
+/* Form Controls */
+.form-control,
+.form-select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 12px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Loading Spinner */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Marker Cluster Styling */
+.marker-cluster-small {
+    background-color: rgba(52, 152, 219, 0.6);
+}
+
+.marker-cluster-small div {
+    background-color: rgba(52, 152, 219, 0.8);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(241, 196, 15, 0.6);
+}
+
+.marker-cluster-medium div {
+    background-color: rgba(241, 196, 15, 0.8);
+}
+
+.marker-cluster-large {
+    background-color: rgba(231, 76, 60, 0.6);
+}
+
+.marker-cluster-large div {
+    background-color: rgba(231, 76, 60, 0.8);
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .gis-sidebar {
+        width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-bar {
+        flex-direction: column;
+    }
+    
+    .search-inputs {
+        width: 100%;
+    }
+    
+    .search-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .search-actions button {
+        flex: 1;
+    }
+    
+    .gis-sidebar {
+        width: 100%;
+        height: 300px;
+        overflow-y: auto;
+    }
+    
+    .gis-content {
+        flex-direction: column;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .gis-header,
+    .search-bar,
+    .gis-sidebar {
+        display: none;
+    }
+    
+    .gis-map {
+        width: 100%;
+        height: 100vh;
+    }
+}
+
+/* ===================================================================== */
+/* Brand (logo) - used in every page header                              */
+/* ===================================================================== */
+.site-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.site-brand:hover,
+.site-brand:focus-visible {
+    color: inherit;
+    text-decoration: none;
+}
+
+.site-brand:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
+.site-logo {
+    display: block;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.site-brand--sm .site-logo {
+    width: 38px;
+    height: 38px;
+}
+
+.site-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.site-brand-text strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.site-brand-text small {
+    font-size: 0.78rem;
+    color: #ecf0f1;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.dropdown-menu .logout-form {
+    margin: 0;
+}
+
+.dropdown-menu .logout-form .dropdown-item {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .site-brand-text small,
+    .header-left .back-link span {
+        display: none;
+    }
+}
+
+/* Simple top bar for pages without a map (admin, profile) */
+.page-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 24px;
+    background: #2c3e50;
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.page-topbar .back-link {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.page-topbar .back-link:hover {
+    color: #3498db;
+}
+
+/* ===================================================================== */
+/* Map helpers shared by all map pages                                   */
+/* ===================================================================== */
+.map-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    text-align: center;
+    color: #2c3e50;
+}
+
+.map-loading .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+.gis-notify {
+    position: fixed;
+    top: 76px;
+    right: 16px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(420px, calc(100vw - 32px));
+}
+
+.gis-notify-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: #ffffff;
+    background: #2c3e50;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+
+.gis-notify-item span {
+    flex: 1;
+}
+
+.gis-notify-item button {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.gis-notify-error { background: #c0392b; }
+.gis-notify-warn { background: #b9770e; }
+.gis-notify-success { background: #1e8449; }
+
+.control-disabled,
+.layer-checkbox.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.layer-checkbox.is-disabled input {
+    cursor: not-allowed;
+}
+
+.zone-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    flex: none;
+}
+
+.result-count {
+    font-size: 0.85rem;
+    color: #bdc3c7;
+    margin-bottom: 12px;
+}
+
+/* ===================================================================== */
+/* Admin and Profile pages                                               */
+/* ===================================================================== */
+.admin-container,
+.profile-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 48px;
+}
+
+.admin-header,
+.profile-header {
+    margin-bottom: 28px;
+}
+
+.admin-header h1,
+.profile-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 6px;
+}
+
+.admin-header p,
+.profile-header p {
+    color: #7f8c8d;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.admin-card,
+.stat-card,
+.profile-card,
+.profile-details {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.admin-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 24px;
+}
+
+.admin-card h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.admin-card p {
+    color: #7f8c8d;
+    margin: 0;
+    flex: 1;
+}
+
+.admin-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-soon {
+    color: #95a5a6;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    padding: 20px 24px;
+}
+
+.stat-card h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    margin: 0 0 6px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 720px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+}
+
+.profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: #ecf0f1;
+    color: #7f8c8d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+
+.profile-info h2 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin: 0 0 8px;
+}
+
+.profile-info p {
+    margin: 0 0 4px;
+    color: #566573;
+}
+
+.profile-role .badge {
+    background: #3498db;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.profile-details {
+    padding: 24px;
+}
+
+.profile-details h3 {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin: 0 0 12px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #7f8c8d;
+}
+
+.detail-value {
+    color: #2c3e50;
+    text-align: right;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Polish: larger logo on the tall dashboard/admin headers, tighter titles on phones */
+.top-header .site-logo,
+.page-topbar .site-logo {
+    width: 52px;
+    height: 52px;
+}
+
+@media (max-width: 768px) {
+    .gis-header .header-center h4 {
+        font-size: 1rem;
+    }
+}

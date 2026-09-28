@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='image/logo-256.png') }}" alt="Spatial Wings logo"
+                     class="login-logo" width="120" height="120">
+            </div>
+            <h2>{{ site_name }}</h2>
+            <h4>{{ product_name }}</h4>
+        </div>
+
+        <form id="loginForm" class="login-form" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="username" name="username"
+                           autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" id="password" name="password"
+                           autocomplete="current-password" required>
+                </div>
+            </div>
+
+            <div class="alert alert-danger d-none" id="errorMessage" role="alert"></div>
+
+            <button type="submit" class="btn btn-primary w-100" id="loginButton">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-box {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .logo-container {
+        margin-bottom: 20px;
+    }
+
+    .login-logo {
+        display: inline-block;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    }
+
+    .login-header h2 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .login-header h4 {
+        color: #666;
+        font-weight: 400;
+        font-size: 1.1rem;
+    }
+
+    .login-form .input-group-text {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+    const form = document.getElementById('loginForm');
+    const button = document.getElementById('loginButton');
+    const errorMsg = document.getElementById('errorMessage');
+
+    function showError(text) {
+        errorMsg.textContent = text;
+        errorMsg.classList.remove('d-none');
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        errorMsg.classList.add('d-none');
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        if (!username || !password) {
+            showError('Enter your username and password.');
+            return;
+        }
+
+        button.disabled = true;
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ username: username, password: password })
+            });
+            let data = {};
+            try { data = await response.json(); } catch (err) { /* non-JSON error page */ }
+
+            if (response.ok && data.success) {
+                window.location.href = '/dashboard';
+            } else if (response.status === 429) {
+                showError(data.message || 'Too many attempts. Please wait a few minutes and try again.');
+            } else if (response.status === 401) {
+                showError(data.message || 'Invalid username or password.');
+            } else {
+                showError(data.message || 'Login failed (HTTP ' + response.status + '). Please try again.');
+            }
+        } catch (error) {
+            showError('Could not reach the server. Check your connection and try again.');
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
+</script>
+{% endblock %}

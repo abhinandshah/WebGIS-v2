@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% from "_macros.html" import brand, user_menu with context %}
+{% set use_map = true %}
+
+{% block title %}Digital Survey - {{ product_name }}{% endblock %}
+
+{% block content %}
+<div class="gis-wrapper">
+    <header class="gis-header">
+        <div class="header-left">
+            {{ brand('sm') }}
+            <a href="{{ url_for('dashboard') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> <span>Back to Dashboard</span>
+            </a>
+        </div>
+        <div class="header-center">
+            <h4>Digital Survey System</h4>
+            <p>Digital data collection and surveying tools.</p>
+        </div>
+        <div class="header-right">
+            {{ user_menu() }}
+        </div>
+    </header>
+
+    <div class="gis-content">
+        <aside class="gis-sidebar">
+            <div class="sidebar-section">
+                <h5><i class="fas fa-clipboard-list"></i> Survey Filters</h5>
+                <div class="form-group">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                    </select>
+                </div>
+                <div class="layer-toggle-section">
+                    <h6><i class="fas fa-layer-group"></i> Layers</h6>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked id="surveysLayer"> Show Surveys
+                    </label>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" id="completedLayer"> Completed Only
+                    </label>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" id="pendingLayer"> Pending Only
+                    </label>
+                </div>
+                <div class="stats-section">
+                    <h6><i class="fas fa-chart-bar"></i> Statistics</h6>
+                    <div class="stat-item">
+                        <span>Total Surveys:</span>
+                        <strong id="totalSurveys">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Completed:</span>
+                        <strong id="completedSurveys">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Pending:</span>
+                        <strong id="pendingSurveys">0</strong>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div id="map" class="gis-map"></div>
+    </div>
+</div>
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; }
+    .gis-wrapper { height: 100vh; display: flex; flex-direction: column; }
+    .gis-header {
+        background: #3b4652;
+        color: rgb(247, 245, 245);
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 1000;
+    }
+    .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .back-link:hover { color: #3498db; }
+    .header-center {
+        /* keeps the title centred regardless of what sits left/right */
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        white-space: nowrap;
+    }
+    .header-center h4 { margin: 0; font-weight: 600; }
+    .header-center p { margin: 0; font-size: 0.8rem; opacity: 0.85; align-items: center; }
+    .gis-content { display: flex; flex: 1; overflow: hidden; }
+    .gis-sidebar { width: 280px; background: #2c3e50; color: white; overflow-y: auto; padding: 20px; }
+    .sidebar-section h5 { font-size: 1.1rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #34495e; }
+    .sidebar-section h6 { font-size: 0.95rem; margin-top: 15px; margin-bottom: 10px; color: #ecf0f1; }
+    .layer-toggle-section { margin-top: 20px; }
+    .layer-checkbox { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; border-radius: 5px; transition: background 0.2s; font-size: 0.9rem; }
+    .layer-checkbox:hover { background: #34495e; }
+    .layer-checkbox input { cursor: pointer; }
+    .gis-map { flex: 1; position: relative; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
+    .stats-section { margin-top: 20px; padding: 15px; background: #34495e; border-radius: 8px; }
+    .stat-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #4a5f7f; }
+    .stat-item:last-child { border-bottom: none; }
+
+    @media (max-width: 900px) {
+        .header-center { position: static; transform: none; }
+        .header-center p { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const STATUS_COLORS = { 'completed': '#27AE60', 'pending': '#E74C3C', 'in-progress': '#F39C12' };
+    let map, surveysLayer;
+    let allSurveys = [];
+    const $ = function (id) { return document.getElementById(id); };
+
+    function propsOf(f) { return GIS.isPlainObject(f.properties) ? f.properties : {}; }
+    function statusKey(f) {
+        const s = propsOf(f).status;
+        return (s === undefined || s === null ? '' : String(s)).toLowerCase().trim().replace(/\s+/g, '-');
+    }
+
+    /* Statistics describe the whole dataset, whatever filter is active. */
+    function updateStats() {
+        $('totalSurveys').textContent = allSurveys.length;
+        $('completedSurveys').textContent = allSurveys.filter(function (f) { return statusKey(f) === 'completed'; }).length;
+        $('pendingSurveys').textContent = allSurveys.filter(function (f) { return statusKey(f) === 'pending'; }).length;
+    }
+
+    function render(features, fit) {
+        if (surveysLayer) { map.removeLayer(surveysLayer); }
+        surveysLayer = L.geoJSON({ type: 'FeatureCollection', features: features }, {
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, {
+                    radius: 8,
+                    fillColor: STATUS_COLORS[statusKey(feature)] || '#95A5A6',
+                    color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8
+                });
+            },
+            onEachFeature: function (feature, layer) {
+                const p = propsOf(feature);
+                layer.bindPopup(GIS.popupTable('Survey Information', 'fa-clipboard-list', [
+                    ['Survey ID', p.survey_id], ['Date', p.date], ['Surveyor', p.surveyor], ['Status', p.status]
+                ]));
+                layer.bindTooltip(GIS.esc(p.survey_id, 'Unknown'));
+            }
+        });
+        if ($('surveysLayer').checked) { surveysLayer.addTo(map); }
+        if (fit && features.length) {
+            try { map.fitBounds(surveysLayer.getBounds(), { padding: [50, 50], maxZoom: 17 }); }
+            catch (e) { console.warn('Could not fit map to surveys', e); }
+        }
+    }
+
+    function filterSurveys(fit) {
+        const wanted = $('statusFilter').value;
+        render(allSurveys.filter(function (f) { return !wanted || statusKey(f) === wanted; }), fit === true);
+    }
+
+    /* The status dropdown and the two "only" checkboxes are one control. */
+    function setStatus(value) {
+        $('statusFilter').value = value;
+        $('completedLayer').checked = value === 'completed';
+        $('pendingLayer').checked = value === 'pending';
+        filterSurveys(false);
+    }
+
+    async function loadSurveys() {
+        GIS.setLoading(map, true, 'Loading surveys...');
+        try {
+            allSurveys = GIS.featuresOf(await GIS.fetchJSON('/api/surveys'));
+            updateStats();
+            filterSurveys(true);
+        } catch (error) {
+            console.error('Error loading surveys:', error);
+            GIS.notify('Could not load survey data. ' + error.message, 'error');
+        } finally {
+            GIS.setLoading(map, false);
+        }
+    }
+
+    function init() {
+        map = GIS.initMap('map').map;
+
+        $('statusFilter').addEventListener('change', function () { setStatus(this.value); });
+        $('completedLayer').addEventListener('change', function () { setStatus(this.checked ? 'completed' : ''); });
+        $('pendingLayer').addEventListener('change', function () { setStatus(this.checked ? 'pending' : ''); });
+        $('surveysLayer').addEventListener('change', function () {
+            if (!surveysLayer) { return; }
+            if (this.checked) { surveysLayer.addTo(map); } else { map.removeLayer(surveysLayer); }
+        });
+
+        loadSurveys();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+{% endblock %}

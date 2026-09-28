@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% from "_macros.html" import brand, user_menu with context %}
+{% set use_map = true %}
+
+{% block title %}Nepal Weather Map - {{ product_name }}{% endblock %}
+
+{% block content %}
+<div class="wx-wrapper">
+    <header class="gis-header">
+        <div class="header-left">
+            {{ brand('sm') }}
+            <a href="{{ url_for('dashboard') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> <span>Back to Dashboard</span>
+            </a>
+        </div>
+        <div class="header-center">
+            <h4>Nepal Weather Map</h4>
+            <p>Real-time meteorological tracking and climate data tools.</p>
+        </div>
+        <div class="header-right">
+            {{ user_menu() }}
+        </div>
+    </header>
+
+    <div class="wx-toolbar">
+        <div class="wx-title">
+            <h1>NEPAL <span>LIVE</span></h1>
+            <p id="full-date" aria-live="off"></p>
+            <p id="updated-at" class="wx-updated"></p>
+        </div>
+
+        <div class="wx-region">
+            <label for="region-select">Select region</label>
+            <select id="region-select" class="form-select">
+                <option value="ALL">Whole Country</option>
+                <option value="CAPITALS">Major Hubs</option>
+                <optgroup label="Provinces">
+                    <option value="P1">Koshi Province</option>
+                    <option value="P2">Madhesh Province</option>
+                    <option value="P3" selected>Bagmati Province</option>
+                    <option value="P4">Gandaki Province</option>
+                    <option value="P5">Lumbini Province</option>
+                    <option value="P6">Karnali Province</option>
+                    <option value="P7">Sudurpashchim</option>
+                </optgroup>
+            </select>
+        </div>
+    </div>
+
+    <div class="wx-map"><div id="map"></div></div>
+</div>
+
+<style>
+    html, body { height: 100%; overflow: hidden; }
+    .wx-wrapper { height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
+    .wx-wrapper .gis-header {
+        background: #2c3e50; color: white; padding: 12px 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        position: relative; z-index: 1000;
+    }
+    .wx-wrapper .back-link { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .wx-wrapper .back-link:hover { color: #3498db; }
+    .wx-wrapper .header-center h4 { margin: 0; font-weight: 600; }
+    .header-center p { margin: 0; font-size: 0.8rem; opacity: 0.85; align-items: center; }
+
+    .wx-toolbar {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        padding: 12px 20px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; z-index: 999;
+    }
+    .wx-title h1 { font-size: 1.7rem; font-weight: 900; letter-spacing: -0.01em; color: #1e293b; margin: 0; }
+    .wx-title h1 span { color: #dc2626; }
+    .wx-title p { margin: 0; color: #475569; font-weight: 500; font-size: 0.95rem; }
+    .wx-title .wx-updated { color: #64748b; font-size: 0.8rem; font-weight: 400; min-height: 1.2em; }
+    .wx-region { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+    .wx-region label { font-size: 0.72rem; font-weight: 700; color: #64748b; letter-spacing: 0.04em; }
+
+    .wx-map { flex: 1; position: relative; min-height: 0; }
+    #map { width: 100%; height: 100%; }
+
+    .legend { padding: 10px; font: 12px Arial, sans-serif; background: rgba(255,255,255,0.92);
+              box-shadow: 0 0 10px rgba(0,0,0,0.2); border-radius: 5px; line-height: 20px; }
+    .legend i { width: 14px; height: 14px; float: left; margin: 3px 8px 0 0; border-radius: 3px; }
+    .temp-label {
+        background: transparent !important; border: none !important; box-shadow: none !important;
+        font-weight: 900; font-size: 12px; color: white !important;
+        text-shadow: 0 0 4px #000; pointer-events: none;
+    }
+    .temp-label::before { display: none; }
+    .weather-popup b { color: #dc2626; font-size: 1.05rem; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const REFRESH_MS = 15 * 60 * 1000;
+    const FETCH_TIMEOUT_MS = 15000;
+
+    const DATA_POINTS = {
+        P1: [{ name: 'Biratnagar', lat: 26.45, lon: 87.27 }, { name: 'Dharan', lat: 26.81, lon: 87.27 }, { name: 'Namche', lat: 27.80, lon: 86.71 }],
+        P2: [{ name: 'Janakpur', lat: 26.72, lon: 85.92 }, { name: 'Birgunj', lat: 27.01, lon: 84.87 }],
+        P3: [{ name: 'Kathmandu', lat: 27.71, lon: 85.32 }, { name: 'Hetauda', lat: 27.42, lon: 85.03 }, { name: 'Bharatpur', lat: 27.68, lon: 84.43 }],
+        P4: [{ name: 'Pokhara', lat: 28.20, lon: 83.98 }, { name: 'Jomsom', lat: 28.78, lon: 83.73 }],
+        P5: [{ name: 'Butwal', lat: 27.70, lon: 83.44 }, { name: 'Nepalgunj', lat: 28.05, lon: 81.61 }],
+        P6: [{ name: 'Birendranagar', lat: 28.59, lon: 81.63 }, { name: 'Jumla', lat: 29.27, lon: 82.18 }],
+        P7: [{ name: 'Dhangadhi', lat: 28.68, lon: 80.60 }, { name: 'Mahendranagar', lat: 28.92, lon: 80.17 }]
+    };
+    DATA_POINTS.ALL = Object.keys(DATA_POINTS).reduce(function (all, k) { return all.concat(DATA_POINTS[k]); }, []);
+    DATA_POINTS.CAPITALS = [DATA_POINTS.P3[0], DATA_POINTS.P4[0], DATA_POINTS.P1[0], DATA_POINTS.P5[1], DATA_POINTS.P7[0], DATA_POINTS.P2[0]];
+
+    /* One table drives both the marker colours and the legend, so they cannot disagree. */
+    const TEMP_BANDS = [
+        { min: 35, color: '#ef4444', label: '35\u00b0C and above' },
+        { min: 25, color: '#f59e0b', label: '25\u201334\u00b0C' },
+        { min: 15, color: '#10b981', label: '15\u201324\u00b0C' },
+        { min: -Infinity, color: '#3b82f6', label: 'Below 15\u00b0C' }
+    ];
+    function tempColor(t) {
+        for (let i = 0; i < TEMP_BANDS.length; i++) { if (t >= TEMP_BANDS[i].min) { return TEMP_BANDS[i].color; } }
+        return TEMP_BANDS[TEMP_BANDS.length - 1].color;
+    }
+
+    let map, markersLayer;
+    let requestSeq = 0;                                  // ignores responses that a newer request has replaced
+    const $ = function (id) { return document.getElementById(id); };
+
+    function addLegend() {
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function () {
+            const div = L.DomUtil.create('div', 'legend');
+            const title = document.createElement('b');
+            title.textContent = 'Temperature';
+            div.appendChild(title);
+            TEMP_BANDS.forEach(function (band) {
+                div.appendChild(document.createElement('br'));
+                const swatch = document.createElement('i');
+                swatch.style.background = band.color;
+                div.appendChild(swatch);
+                div.appendChild(document.createTextNode(' ' + band.label));
+            });
+            return div;
+        };
+        legend.addTo(map);
+    }
+
+    /* fit=true: the user changed region (clear the old markers, move the map).
+       fit=false: background refresh (keep the current view until new data arrives). */
+    async function updateView(regionKey, fit) {
+        const towns = DATA_POINTS[regionKey];
+        if (!towns) { return; }
+        const seq = ++requestSeq;
+        if (fit) {
+            markersLayer.clearLayers();
+            GIS.setLoading(map, true, 'Fetching latest weather...');
+        }
+
+        const controller = new AbortController();
+        const timer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+        try {
+            const url = 'https://api.open-meteo.com/v1/forecast' +
+                '?latitude=' + towns.map(function (t) { return t.lat; }).join(',') +
+                '&longitude=' + towns.map(function (t) { return t.lon; }).join(',') +
+                '&current=temperature_2m,wind_speed_10m&timezone=Asia%2FKathmandu';
+            const response = await fetch(url, { signal: controller.signal });
+            if (!response.ok) { throw new Error('the weather service answered HTTP ' + response.status); }
+            const data = await response.json();
+            if (seq !== requestSeq) { return; }          // a newer request superseded this one
+
+            const results = Array.isArray(data) ? data : [data];
+            const fresh = L.layerGroup();
+            const bounds = L.latLngBounds([]);
+            results.forEach(function (res, i) {
+                const town = towns[i];
+                if (!town || !res || !res.current) { return; }
+                const temp = Math.round(Number(res.current.temperature_2m));
+                if (!isFinite(temp)) { return; }
+                bounds.extend([town.lat, town.lon]);
+                L.circleMarker([town.lat, town.lon], {
+                    radius: 14, fillColor: tempColor(temp), color: '#fff', weight: 2, fillOpacity: 0.9
+                }).addTo(fresh)
+                    .bindPopup('<div class="weather-popup"><b>' + GIS.esc(town.name) + '</b><br>Temp: ' + temp +
+                        '\u00b0C<br>Wind: ' + GIS.esc(Number(res.current.wind_speed_10m)) + ' km/h</div>')
+                    .bindTooltip(String(temp), { permanent: true, direction: 'center', className: 'temp-label' });
+            });
+            if (!bounds.isValid()) { throw new Error('the weather service returned no readings'); }
+
+            markersLayer.clearLayers();
+            fresh.eachLayer(function (l) { markersLayer.addLayer(l); });
+            if (fit) { map.flyToBounds(bounds, { padding: [50, 50] }); }
+            $('updated-at').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kathmandu', hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            if (seq === requestSeq) {
+                console.error(e);
+                const reason = e.name === 'AbortError' ? 'the request timed out' : e.message;
+                GIS.notify('Could not load weather data: ' + reason + '. Try again in a moment.', 'error');
+            }
+        } finally {
+            clearTimeout(timer);
+            if (seq === requestSeq) { GIS.setLoading(map, false); }   // never leave the overlay stuck
+        }
+    }
+
+    function updateDateTime() {
+        $('full-date').textContent = new Date().toLocaleString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Kathmandu'
+        });
+    }
+
+    function init() {
+        map = GIS.initMap('map', { center: [28.39, 84.12], zoom: 7, basemap: 'street' }).map;
+        markersLayer = L.layerGroup().addTo(map);
+        addLegend();
+
+        const select = $('region-select');
+        select.addEventListener('change', function () { updateView(select.value, true); });
+        updateView(select.value, true);                 // the dropdown's own value, not a hard-coded region
+        setInterval(function () { updateView(select.value, false); }, REFRESH_MS);   // refresh without reloading the page
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+{% endblock %}
