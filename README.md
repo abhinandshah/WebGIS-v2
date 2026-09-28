@@ -1,8 +1,8 @@
-# Spatial Wings WebGIS (patched)
+# Spatial Wings WebGIS 
 
 Flask + Leaflet municipal WebGIS: dashboard, land management, house numbering,
-digital survey, road network and a Nepal weather map. This is the patched
-version of the original `again.zip`, with the Spatial Wings logo on every page.
+digital survey, road network and a Nepal weather map. This is the
+version 2 of Spatial Wings WebGIS, with the Spatial Wings logo on every page.
 
 ## Quick start
 
