@@ -1,4 +1,4 @@
-from pathlib import Path
+
 
 readme = r'''<div align="center">
 
@@ -363,6 +363,4 @@ Built with Python, Flask, Leaflet, and GeoJSON.
 
 </div>
 '''
-out = Path("/mnt/data/README_rewritten.md")
-out.write_text(readme, encoding="utf-8")
-print(f"Created {out} ({len(readme.splitlines())} lines).")
+
