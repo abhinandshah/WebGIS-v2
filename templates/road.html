@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+{% from "_macros.html" import brand, user_menu with context %}
+{% set use_map = true %}
+
+{% block title %}Road Network - {{ product_name }}{% endblock %}
+
+{% block content %}
+<div class="gis-wrapper">
+    <header class="gis-header">
+        <div class="header-left">
+            {{ brand('sm') }}
+            <a href="{{ url_for('dashboard') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> <span>Back to Dashboard</span>
+            </a>
+        </div>
+        <div class="header-center">
+            <h4>Road Network System</h4>
+        </div>
+        <div class="header-right">
+            {{ user_menu() }}
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <div class="search-inputs">
+            <input type="text" id="roadName" class="form-control" placeholder="Road Name" autocomplete="off">
+            <select id="roadType" class="form-select" aria-label="Road type">
+                <option value="">All Types</option>
+                <option value="primary">Primary</option>
+                <option value="secondary">Secondary</option>
+                <option value="tertiary">Tertiary</option>
+            </select>
+            <select id="roadStatus" class="form-select" aria-label="Road status">
+                <option value="">All Status</option>
+                <option value="paved">Paved</option>
+                <option value="gravel">Gravel</option>
+                <option value="under-construction">Under Construction</option>
+            </select>
+        </div>
+        <div class="search-actions">
+            <button class="btn btn-primary" type="button" id="searchBtn">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button class="btn btn-secondary" type="button" id="clearBtn">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <div class="gis-content">
+        <aside class="gis-sidebar">
+            <div class="sidebar-section">
+                <h5><i class="fas fa-road"></i> Road Filters</h5>
+                <div class="form-group">
+                    <label for="typeFilter">Road Type</label>
+                    <select id="typeFilter" class="form-select form-select-sm">
+                        <option value="">All Types</option>
+                        <option value="primary">Primary</option>
+                        <option value="secondary">Secondary</option>
+                        <option value="tertiary">Tertiary</option>
+                    </select>
+                </div>
+                <div class="layer-toggle-section">
+                    <h6><i class="fas fa-layer-group"></i> Road Layers</h6>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked class="road-layer" data-type="primary"> Primary Roads
+                    </label>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked class="road-layer" data-type="secondary"> Secondary Roads
+                    </label>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked class="road-layer" data-type="tertiary"> Tertiary Roads
+                    </label>
+                </div>
+                <div class="layer-toggle-section">
+                    <h6><i class="fas fa-wrench"></i> Status</h6>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked class="status-layer" data-status="paved"> Paved
+                    </label>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked class="status-layer" data-status="gravel"> Gravel
+                    </label>
+                    <label class="layer-checkbox">
+                        <input type="checkbox" checked class="status-layer" data-status="under-construction"> Under Construction
+                    </label>
+                </div>
+                <div class="stats-section">
+                    <h6><i class="fas fa-chart-pie"></i> Network Stats</h6>
+                    <div class="stat-item">
+                        <span>Total Length:</span>
+                        <strong id="totalLength">0 km</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Paved:</span>
+                        <strong id="pavedLength">0 km</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Unpaved:</span>
+                        <strong id="unpavedLength">0 km</strong>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="gis-map">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    * { 
+        margin: 0; 
+        padding: 0; 
+        box-sizing: border-box; 
+    }
+    
+    html, body {
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .gis-wrapper { 
+        height: 100vh; 
+        display: flex; 
+        flex-direction: column; 
+    }
+    
+    .gis-header { 
+        background: #2c3e50; 
+        color: white; 
+        padding: 12px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        z-index: 1000;
+        position: relative;
+    }
+    
+    .back-link { 
+        color: white; 
+        text-decoration: none; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+    }
+    
+    .back-link:hover { 
+        color: #3498db; 
+    }
+    
+    .header-center h4 { 
+        margin: 0; 
+        font-weight: 600; 
+    }
+    
+    .search-bar { 
+        background: white; 
+        padding: 15px 20px; 
+        display: flex; 
+        gap: 15px; 
+        align-items: center; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        flex-wrap: wrap;
+        z-index: 999;
+        position: relative;
+    }
+    
+    .search-inputs { 
+        display: flex; 
+        gap: 10px; 
+        flex: 1; 
+        flex-wrap: wrap; 
+    }
+    
+    .search-inputs input, 
+    .search-inputs select { 
+        flex: 1; 
+        min-width: 150px; 
+    }
+    
+    .search-actions { 
+        display: flex; 
+        gap: 10px; 
+    }
+    
+    .gis-content { 
+        display: flex; 
+        flex: 1; 
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .gis-sidebar { 
+        width: 280px; 
+        background: #2c3e50; 
+        color: white; 
+        overflow-y: auto; 
+        padding: 20px;
+        z-index: 500;
+        position: relative;
+    }
+    
+    .sidebar-section h5 { 
+        font-size: 1.1rem; 
+        margin-bottom: 15px; 
+        padding-bottom: 10px; 
+        border-bottom: 2px solid #34495e; 
+    }
+    
+    .sidebar-section h6 { 
+        font-size: 0.95rem; 
+        margin-top: 15px; 
+        margin-bottom: 10px; 
+        color: #ecf0f1; 
+    }
+    
+    .layer-toggle-section { 
+        margin-top: 20px; 
+    }
+    
+    .layer-checkbox { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding: 8px 10px; 
+        cursor: pointer; 
+        border-radius: 5px; 
+        transition: background 0.2s; 
+        font-size: 0.9rem; 
+    }
+    
+    .layer-checkbox:hover { 
+        background: #34495e; 
+    }
+    
+    .layer-checkbox input { 
+        cursor: pointer; 
+    }
+    
+    .gis-map { 
+        flex: 1; 
+        position: relative;
+        overflow: hidden;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+        background: #e0e0e0;
+    }
+    
+    .form-group { 
+        margin-bottom: 15px; 
+    }
+    
+    .form-group label { 
+        display: block; 
+        margin-bottom: 5px; 
+        font-size: 0.9rem; 
+    }
+    
+    .stats-section { 
+        margin-top: 20px; 
+        padding: 15px; 
+        background: #34495e; 
+        border-radius: 8px; 
+    }
+    
+    .stat-item { 
+        display: flex; 
+        justify-content: space-between; 
+        padding: 8px 0; 
+        border-bottom: 1px solid #4a5f7f; 
+    }
+    
+    .stat-item:last-child { 
+        border-bottom: none; 
+    }
+    
+    /* Popup styling */
+    .leaflet-popup-content {
+        margin: 15px;
+        min-width: 200px;
+    }
+    
+    .popup-content h6 {
+        margin-bottom: 10px;
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 5px;
+        font-size: 1rem;
+    }
+    
+    .popup-content table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .popup-content td {
+        padding: 6px 4px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .popup-content td:first-child {
+        font-weight: 600;
+        color: #555;
+        width: 40%;
+    }
+    
+    .popup-content td:last-child {
+        color: #2c3e50;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const TYPE_COLORS = { primary: '#E74C3C', secondary: '#F39C12', tertiary: '#3498DB' };
+    const OTHER_COLOR = '#95A5A6';
+    const KNOWN_TYPES = Object.keys(TYPE_COLORS);
+    const KNOWN_STATUS = ['paved', 'gravel', 'under-construction'];
+
+    let map, roadsLayer;
+    let allRoads = [];
+    const $ = function (id) { return document.getElementById(id); };
+
+    /* ---------------------------- feature helpers ------------------------- */
+    function propsOf(f) { return GIS.isPlainObject(f.properties) ? f.properties : {}; }
+    function text(v) { return v === undefined || v === null ? '' : String(v); }
+    function roadType(f) { const p = propsOf(f); return text(p.road_type !== undefined ? p.road_type : p.type).toLowerCase().trim(); }
+    function roadStatus(f) { return text(propsOf(f).status).toLowerCase().trim().replace(/\s+/g, '-'); }
+    function roadName(f) { const p = propsOf(f); return text(p.road_name || p.name).trim(); }
+
+    /* Real length from the geometry (metres between vertices -> km). */
+    function lineKm(coords) {
+        let metres = 0;
+        for (let i = 1; i < coords.length; i++) {
+            metres += L.latLng(coords[i - 1][1], coords[i - 1][0]).distanceTo(L.latLng(coords[i][1], coords[i][0]));
+        }
+        return metres / 1000;
+    }
+    function featureKm(f) {
+        const g = f.geometry;
+        if (!g || !Array.isArray(g.coordinates)) { return 0; }
+        if (g.type === 'LineString') { return lineKm(g.coordinates); }
+        if (g.type === 'MultiLineString') { return g.coordinates.reduce(function (s, l) { return s + lineKm(l); }, 0); }
+        return 0;
+    }
+
+    function updateStats(features) {
+        let total = 0, paved = 0;
+        features.forEach(function (f) {
+            const km = featureKm(f);
+            total += km;
+            if (roadStatus(f) === 'paved') { paved += km; }
+        });
+        $('totalLength').textContent = total.toFixed(1) + ' km';
+        $('pavedLength').textContent = paved.toFixed(1) + ' km';
+        $('unpavedLength').textContent = (total - paved).toFixed(1) + ' km';
+    }
+
+    /* ------------------------------ rendering ----------------------------- */
+    function styleFor(feature) {
+        const t = roadType(feature);
+        return { color: TYPE_COLORS[t] || OTHER_COLOR, weight: t === 'primary' ? 5 : 3, opacity: 0.8 };
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.bindPopup(function () {
+            return GIS.popupTable('Road Information', 'fa-road', GIS.propertiesRows(feature.properties));
+        }, { maxWidth: 320 });
+        layer.bindTooltip(GIS.esc(roadName(feature), 'Unknown Road'), { sticky: true });
+        layer.on('click', function () { layer.setStyle({ color: '#FFFF00', weight: 6, opacity: 1 }); });
+        layer.on('popupclose', function () { if (roadsLayer) { roadsLayer.resetStyle(layer); } });
+    }
+
+    function render(features, fit) {
+        if (roadsLayer) { map.removeLayer(roadsLayer); }
+        roadsLayer = L.geoJSON({ type: 'FeatureCollection', features: features },
+            { style: styleFor, onEachFeature: onEachFeature }).addTo(map);
+        if (fit && features.length) {
+            try { map.fitBounds(roadsLayer.getBounds(), { padding: [50, 50] }); }
+            catch (e) { console.warn('Could not fit map to roads', e); }
+        }
+    }
+
+    /* One filter for name, type, status and the layer checkboxes. */
+    function applyFilters(fit) {
+        const name = $('roadName').value.trim().toLowerCase();
+        const type = $('typeFilter').value;
+        const status = $('roadStatus').value;
+        const typesOn = new Set(Array.from(document.querySelectorAll('.road-layer:checked')).map(function (c) { return c.dataset.type; }));
+        const statusOn = new Set(Array.from(document.querySelectorAll('.status-layer:checked')).map(function (c) { return c.dataset.status; }));
+
+        const shown = allRoads.filter(function (f) {
+            const t = roadType(f), s = roadStatus(f);
+            return (!name || roadName(f).toLowerCase().indexOf(name) !== -1) &&
+                (!type || t === type) &&
+                (!status || s === status) &&
+                (KNOWN_TYPES.indexOf(t) === -1 || typesOn.has(t)) &&
+                (KNOWN_STATUS.indexOf(s) === -1 || statusOn.has(s));
+        });
+        render(shown, fit);
+        updateStats(shown);
+        return shown.length;
+    }
+
+    /* -------------------------------- loading ----------------------------- */
+    async function loadRoads() {
+        GIS.setLoading(map, true, 'Loading roads...');
+        try {
+            allRoads = GIS.featuresOf(await GIS.fetchJSON('/api/roads'));
+            if (!allRoads.length) {
+                GIS.notify('The road layer contains no features.', 'warn');
+            }
+            applyFilters(true);
+        } catch (error) {
+            console.error('Error loading roads:', error);
+            GIS.notify('Could not load road data. ' + error.message, 'error');
+        } finally {
+            GIS.setLoading(map, false);
+        }
+    }
+
+    /* ------------------------------- controls ----------------------------- */
+    function runSearch() {
+        if (!allRoads.length) { return; }
+        const shown = applyFilters(true);
+        if (!shown) { GIS.notify('No roads match the current filters.', 'warn'); }
+    }
+
+    function clearAll() {
+        ['roadName', 'roadType', 'roadStatus', 'typeFilter'].forEach(function (id) { $(id).value = ''; });
+        document.querySelectorAll('.road-layer, .status-layer').forEach(function (c) { c.checked = true; });
+        applyFilters(true);                              // filters are local: no re-download
+    }
+
+    function init() {
+        map = GIS.initMap('map').map;
+
+        // The top and sidebar type dropdowns are the same filter.
+        $('roadType').addEventListener('change', function () { $('typeFilter').value = this.value; runSearch(); });
+        $('typeFilter').addEventListener('change', function () { $('roadType').value = this.value; runSearch(); });
+        $('roadStatus').addEventListener('change', runSearch);
+        document.querySelectorAll('.road-layer, .status-layer').forEach(function (c) {
+            c.addEventListener('change', function () { applyFilters(false); });
+        });
+        $('searchBtn').addEventListener('click', runSearch);
+        $('clearBtn').addEventListener('click', clearAll);
+        $('roadName').addEventListener('keydown', function (e) { if (e.key === 'Enter') { runSearch(); } });
+
+        loadRoads();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+{% endblock %}
