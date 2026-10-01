@@ -1,6 +1,4 @@
-
-
-readme = r'''<div align="center">
+<div align="center">
 
 # 🌍 Spatial Wings WebGIS
 
