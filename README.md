@@ -363,10 +363,10 @@ See [License](LICENSE) for details..
 
 
 ---
-
+(screenshots/logo.png)
 <div align="center">
 
-[logo](screenshots/logo.png)
+(screenshots/logo.png)
 
 **Spatial Wings WebGIS**  
 *Connecting spatial data with practical municipal workflows.*
