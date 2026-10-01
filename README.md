@@ -97,8 +97,8 @@ The project keeps Leaflet, Bootstrap, and Font Awesome assets locally under `sta
 Replace `YOUR-USERNAME` with your GitHub username:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git
-cd YOUR-REPOSITORY
+git clone https://github.com/abhinandshah/WebGIS-v2.git
+cd WebGIS-v2
 ```
 
 Alternatively, download the repository as a ZIP file and extract it.
@@ -179,6 +179,16 @@ Use these settings only for local development. Do not use the Flask debugger on 
 ├── app.py                       # Flask application
 ├── templates/                   # HTML templates
 │   └── _macros.html             # Shared logo and user menu
+│   ├── admin.html
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── house.html
+│   ├── land.html
+│   ├── login.html
+│   ├── profile.html                 
+│   ├── road.html            
+│   ├── survey.html       
+│   └── weather.html
 ├── static/
 │   ├── js/
 │   │   └── gis-common.js        # Shared map, popup, and fetch helpers
