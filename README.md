@@ -365,7 +365,7 @@ See [License](LICENSE) for details..
 ---
 <div align="center">
 
-(screenshots/logo.png)
+(image/logo.png)
 
 
 **Spatial Wings WebGIS**  
