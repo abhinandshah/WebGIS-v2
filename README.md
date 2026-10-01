@@ -358,17 +358,19 @@ This project explores how web technologies can make municipal spatial data easie
 
 ## 📄 License
 
-Add the project's chosen open-source license to the repository and update this section to match it. Do not label the project as MIT-licensed unless an MIT `LICENSE` file is included.
+This project is released under the **MIT License**.<br>
+See [License](LICENSE) for details..
+
 
 ---
 
 <div align="center">
 
+(screenshots/logo.png)
 **Spatial Wings WebGIS**  
 *Connecting spatial data with practical municipal workflows.*
 
 Built with Python, Flask, Leaflet, and GeoJSON.
 
 </div>
-'''
 
