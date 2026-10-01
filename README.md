@@ -367,8 +367,8 @@ See [License](LICENSE) for details..
 
 (screenshots/logo.png)
 
+
 **Spatial Wings WebGIS**  
-(screenshots/logo.png)
 *Connecting spatial data with practical municipal workflows.*
 
 Built with Python, Flask, Leaflet, and GeoJSON.
