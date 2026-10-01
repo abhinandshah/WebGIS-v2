@@ -367,6 +367,7 @@ See [License](LICENSE) for details..
 <div align="center">
 
 (screenshots/logo.png)
+
 **Spatial Wings WebGIS**  
 *Connecting spatial data with practical municipal workflows.*
 
