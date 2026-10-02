@@ -366,8 +366,7 @@ See [License](LICENSE) for details..
 <div align="center">
 
 
-
-(screenshots/logo.png)
+![Tool Preview](screenshots/logo.png)
 
 
 
