@@ -366,7 +366,7 @@ See [License](LICENSE) for details..
 <div align="center">
 
 
-<!..![Tool Preview](screenshots/logo.png)..>
+<!----![Tool Preview](screenshots/logo.png)--->
 
 <img src="screenshots/logo.png" alt="logo Preview" width="100">
 
