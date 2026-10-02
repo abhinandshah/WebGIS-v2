@@ -368,7 +368,7 @@ See [License](LICENSE) for details..
 
 <!..![Tool Preview](screenshots/logo.png)..>
 
-<img src="screenshots/logo.png" alt="logo Preview" width="200">
+<img src="screenshots/logo.png" alt="logo Preview" width="100">
 
 
 
