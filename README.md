@@ -364,7 +364,10 @@ See [License](LICENSE) for details..
 
 ---
 <div align="center">
-(screenshots/logo.png)<br>
+
+
+
+(screenshots/logo.png)
 
 
 
