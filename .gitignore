@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+# generated gzip copies of large layers
+data/*.gz
+data/*.gz.*.tmp
