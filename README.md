@@ -56,7 +56,7 @@ Add screenshots or a short GIF of the running application to the `screenshots/` 
 
 | Land Management | House Numbering |
 |---|---|
-| ![Land management placeholder](screenshots/land-management.png) | ![House numbering placeholder](screenshots/house-numbering.png) |
+| ![Land management placeholder](screenshots/Land_Management_System.png) | ![House numbering placeholder](screenshots/house-numbering.png) |
 
 </div>
 
